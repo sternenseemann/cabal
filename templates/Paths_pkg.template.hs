@@ -9,10 +9,12 @@
 {% endif %}
 {-# OPTIONS_GHC -fno-warn-missing-import-lists #-}
 {-# OPTIONS_GHC -w #-}
-module Paths_{{ manglePkgName packageName }} (
-    version,
-    getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir,
-    getDataFileName, getSysconfDir
+module Paths_{{ manglePkgName packageName }} {{ warnPragma }} (
+    version, getBinDir,
+    {% if shouldEmitDataDir %}
+    getDataFileName,
+    {% endif %}
+    {{ importList }}
   ) where
 
 {% if not absolute %}
@@ -51,12 +53,12 @@ catchIO = Exception.catch
 version :: Version
 version = Version {{ versionDigits }} []
 
+{% if shouldEmitDataDir %}
 getDataFileName :: FilePath -> IO FilePath
 getDataFileName name = do
   dir <- getDataDir
   return (dir `joinFileName` name)
-
-getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: IO FilePath
+{% endif %}
 
 {% defblock function_defs %}
 minusFileName :: FilePath -> String -> FilePath
@@ -85,6 +87,8 @@ splitFileName p = (reverse (path2++drive), reverse fname)
 
 {% if relocatable %}
 
+getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: IO FilePath
+
 getPrefixDirReloc :: FilePath -> IO FilePath
 getPrefixDirReloc dirRel = do
   exePath <- getExecutablePath
@@ -102,20 +106,12 @@ getSysconfDir = catchIO (getEnv "{{ manglePkgName packageName }}_sysconfdir") (\
 
 {% elif absolute %}
 
-bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath
+bindir :: FilePath
 bindir     = {{ bindir }}
-libdir     = {{ libdir }}
-dynlibdir  = {{ dynlibdir }}
-datadir    = {{ datadir }}
-libexecdir = {{ libexecdir }}
-sysconfdir = {{ sysconfdir }}
 
+getBinDir :: IO FilePath
 getBinDir     = catchIO (getEnv "{{ manglePkgName packageName }}_bindir")     (\_ -> return bindir)
-getLibDir     = catchIO (getEnv "{{ manglePkgName packageName }}_libdir")     (\_ -> return libdir)
-getDynLibDir  = catchIO (getEnv "{{ manglePkgName packageName }}_dynlibdir")  (\_ -> return dynlibdir)
-getDataDir    = catchIO (getEnv "{{ manglePkgName packageName }}_datadir")    (\_ -> return datadir)
-getLibexecDir = catchIO (getEnv "{{ manglePkgName packageName }}_libexecdir") (\_ -> return libexecdir)
-getSysconfDir = catchIO (getEnv "{{ manglePkgName packageName }}_sysconfdir") (\_ -> return sysconfdir)
+{{ absBody }}
 
 {% elif isWindows %}
 

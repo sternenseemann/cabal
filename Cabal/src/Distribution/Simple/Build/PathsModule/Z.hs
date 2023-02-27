@@ -19,7 +19,11 @@ data Z
          zLibexecdir :: FilePath,
          zSysconfdir :: FilePath,
          zNot :: (Bool -> Bool),
-         zManglePkgName :: (PackageName -> String)}
+         zManglePkgName :: (PackageName -> String),
+         zShouldEmitDataDir :: Bool,
+         zAbsBody :: String,
+         zWarnPragma :: String,
+         zImportList :: String}
     deriving Generic
 render :: Z -> String
 render z_root = execWriter $ do
@@ -45,10 +49,23 @@ render z_root = execWriter $ do
   tell "{-# OPTIONS_GHC -w #-}\n"
   tell "module Paths_"
   tell (zManglePkgName z_root (zPackageName z_root))
+  tell " "
+  tell (zWarnPragma z_root)
   tell " (\n"
-  tell "    version,\n"
-  tell "    getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir,\n"
-  tell "    getDataFileName, getSysconfDir\n"
+  tell "    version, getBinDir,\n"
+  tell "    "
+  if (zShouldEmitDataDir z_root)
+  then do
+    tell "\n"
+    tell "    getDataFileName,\n"
+    tell "    "
+    return ()
+  else do
+    return ()
+  tell "\n"
+  tell "    "
+  tell (zImportList z_root)
+  tell "\n"
   tell "  ) where\n"
   tell "\n"
   if (zNot z_root (zAbsolute z_root))
@@ -97,12 +114,15 @@ render z_root = execWriter $ do
   tell (zVersionDigits z_root)
   tell " []\n"
   tell "\n"
-  tell "getDataFileName :: FilePath -> IO FilePath\n"
-  tell "getDataFileName name = do\n"
-  tell "  dir <- getDataDir\n"
-  tell "  return (dir `joinFileName` name)\n"
-  tell "\n"
-  tell "getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: IO FilePath\n"
+  if (zShouldEmitDataDir z_root)
+  then do
+    tell "getDataFileName :: FilePath -> IO FilePath\n"
+    tell "getDataFileName name = do\n"
+    tell "  dir <- getDataDir\n"
+    tell "  return (dir `joinFileName` name)\n"
+    return ()
+  else do
+    return ()
   tell "\n"
   let
     z_var0_function_defs = do
@@ -130,6 +150,8 @@ render z_root = execWriter $ do
   tell "\n"
   if (zRelocatable z_root)
   then do
+    tell "\n"
+    tell "getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: IO FilePath\n"
     tell "\n"
     tell "getPrefixDirReloc :: FilePath -> IO FilePath\n"
     tell "getPrefixDirReloc dirRel = do\n"
@@ -177,44 +199,17 @@ render z_root = execWriter $ do
     if (zAbsolute z_root)
     then do
       tell "\n"
-      tell "bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath\n"
+      tell "bindir :: FilePath\n"
       tell "bindir     = "
       tell (zBindir z_root)
       tell "\n"
-      tell "libdir     = "
-      tell (zLibdir z_root)
       tell "\n"
-      tell "dynlibdir  = "
-      tell (zDynlibdir z_root)
-      tell "\n"
-      tell "datadir    = "
-      tell (zDatadir z_root)
-      tell "\n"
-      tell "libexecdir = "
-      tell (zLibexecdir z_root)
-      tell "\n"
-      tell "sysconfdir = "
-      tell (zSysconfdir z_root)
-      tell "\n"
-      tell "\n"
+      tell "getBinDir :: IO FilePath\n"
       tell "getBinDir     = catchIO (getEnv \""
       tell (zManglePkgName z_root (zPackageName z_root))
       tell "_bindir\")     (\\_ -> return bindir)\n"
-      tell "getLibDir     = catchIO (getEnv \""
-      tell (zManglePkgName z_root (zPackageName z_root))
-      tell "_libdir\")     (\\_ -> return libdir)\n"
-      tell "getDynLibDir  = catchIO (getEnv \""
-      tell (zManglePkgName z_root (zPackageName z_root))
-      tell "_dynlibdir\")  (\\_ -> return dynlibdir)\n"
-      tell "getDataDir    = catchIO (getEnv \""
-      tell (zManglePkgName z_root (zPackageName z_root))
-      tell "_datadir\")    (\\_ -> return datadir)\n"
-      tell "getLibexecDir = catchIO (getEnv \""
-      tell (zManglePkgName z_root (zPackageName z_root))
-      tell "_libexecdir\") (\\_ -> return libexecdir)\n"
-      tell "getSysconfDir = catchIO (getEnv \""
-      tell (zManglePkgName z_root (zPackageName z_root))
-      tell "_sysconfdir\") (\\_ -> return sysconfdir)\n"
+      tell (zAbsBody z_root)
+      tell "\n"
       tell "\n"
       return ()
     else do

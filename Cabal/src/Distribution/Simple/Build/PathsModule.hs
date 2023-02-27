@@ -56,8 +56,41 @@ generatePathsModule pkg_descr lbi clbi = Z.render Z.Z
     , Z.zDatadir    = zDatadir
     , Z.zLibexecdir = zLibexecdir
     , Z.zSysconfdir = zSysconfdir
+
+    , Z.zAbsBody = absBody
+    , Z.zWarnPragma = warnPragma
+    , Z.zImportList = importList
+    , Z.zShouldEmitDataDir = shouldEmitDataDir
     }
   where
+    dirs = [ (flat_libdir, "LibDir")
+           , (flat_dynlibdir, "DynLibDir")
+           , (flat_datadir, "DataDir")
+           , (flat_libexecdir, "LibexecDir")
+           , (flat_sysconfdir, "SysconfDir") ];
+    shouldEmitPath p
+      | flat_prefix `isPrefixOf` flat_bindir = True
+      | flat_prefix `isPrefixOf` p = False
+      | otherwise = True
+    shouldEmitDataDir = shouldEmitPath flat_datadir
+    nixEmitPathFn (path, name) = let
+      varName = toLower <$> name
+      fnName = "get"++name
+      in if shouldEmitPath path then
+           varName ++ " :: FilePath\n"++
+           varName ++ " = " ++ show path ++
+           "\n" ++ fnName ++ " :: IO FilePath" ++
+           "\n" ++ fnName ++ " = " ++ mkGetEnvOr varName ("return " ++ varName)++"\n"
+         else ""
+    mkGetEnvOr var expr = "catchIO (getEnv \""++var'++"\") (\\_ -> "++expr++")"
+        where var' = pkgPathEnvVar pkg_descr var
+    absBody = intercalate "\n" $ nixEmitPathFn <$> dirs
+    warnPragma = case filter (not . shouldEmitPath . fst) dirs of
+      [] -> ""
+      omittedDirs -> "{-# WARNING \"The functions: "++omittedFns++" Have been omitted by the Nix build system.\" #-}"
+        where omittedFns = intercalate ", " $ map snd omittedDirs
+    importList = intercalate ", " $ ("get" ++) . snd <$> filter (shouldEmitPath . fst) dirs
+
     supports_cpp                 = supports_language_pragma
     supports_rebindable_syntax   = ghc_newer_than (mkVersion [7,0,1])
     supports_language_pragma     = ghc_newer_than (mkVersion [6,6,1])

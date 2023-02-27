@@ -43,6 +43,11 @@ $(capture "decls" [d|
 
         , zNot                        :: Bool -> Bool
         , zManglePkgName              :: PackageName -> String
+
+        , zShouldEmitDataDir    :: Bool
+        , zAbsBody              :: String
+        , zWarnPragma           :: String
+        , zImportList           :: String
         }
       deriving (Generic)
     |])
