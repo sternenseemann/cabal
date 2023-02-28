@@ -66,8 +66,6 @@ getDataFileName name = do
   dir <- getDataDir
   return (dir `joinFileName` name)
 
-getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: IO FilePath
-
 {% defblock function_defs %}
 minusFileName :: FilePath -> String -> FilePath
 minusFileName dir ""     = dir
@@ -101,11 +99,17 @@ getPrefixDirReloc dirRel = do
   let (dir,_) = splitFileName exePath
   return ((dir `minusFileName` {{ bindir }}) `joinFileName` dirRel)
 
+getBinDir     :: IO FilePath
 getBinDir     = catchIO (getEnv "{{ manglePkgName packageName }}_bindir")     (\_ -> getPrefixDirReloc $ {{ bindir }})
+getLibDir     :: IO FilePath
 getLibDir     = catchIO (getEnv "{{ manglePkgName packageName }}_libdir")     (\_ -> getPrefixDirReloc $ {{ libdir }})
+getDynLibDir  :: IO FilePath
 getDynLibDir  = catchIO (getEnv "{{ manglePkgName packageName }}_dynlibdir")  (\_ -> getPrefixDirReloc $ {{ dynlibdir }})
+getDataDir    :: IO FilePath
 getDataDir    = catchIO (getEnv "{{ manglePkgName packageName }}_datadir")    (\_ -> getPrefixDirReloc $ {{ datadir }})
+getLibexecDir :: IO FilePath
 getLibexecDir = catchIO (getEnv "{{ manglePkgName packageName }}_libexecdir") (\_ -> getPrefixDirReloc $ {{ libexecdir }})
+getSysconfDir :: IO FilePath
 getSysconfDir = catchIO (getEnv "{{ manglePkgName packageName }}_sysconfdir") (\_ -> getPrefixDirReloc $ {{ sysconfdir }})
 
 {% useblock function_defs %}
@@ -125,11 +129,17 @@ libexecdir = {{ libexecdir }}
 sysconfdir :: FilePath
 sysconfdir = {{ sysconfdir }}
 
+getBinDir     :: IO FilePath
 getBinDir     = catchIO (getEnv "{{ manglePkgName packageName }}_bindir")     (\_ -> return bindir)
+getLibDir     :: IO FilePath
 getLibDir     = catchIO (getEnv "{{ manglePkgName packageName }}_libdir")     (\_ -> return libdir)
+getDynLibDir  :: IO FilePath
 getDynLibDir  = catchIO (getEnv "{{ manglePkgName packageName }}_dynlibdir")  (\_ -> return dynlibdir)
+getDataDir    :: IO FilePath
 getDataDir    = catchIO (getEnv "{{ manglePkgName packageName }}_datadir")    (\_ -> return datadir)
+getLibexecDir :: IO FilePath
 getLibexecDir = catchIO (getEnv "{{ manglePkgName packageName }}_libexecdir") (\_ -> return libexecdir)
+getSysconfDir :: IO FilePath
 getSysconfDir = catchIO (getEnv "{{ manglePkgName packageName }}_sysconfdir") (\_ -> return sysconfdir)
 
 {% elif isWindows %}
@@ -137,11 +147,17 @@ getSysconfDir = catchIO (getEnv "{{ manglePkgName packageName }}_sysconfdir") (\
 prefix :: FilePath
 prefix = {{ prefix }}
 
+getBinDir     :: IO FilePath
 getBinDir     = getPrefixDirRel $ {{ bindir }}
+getLibDir     :: IO FilePath
 getLibDir     = {{ libdir }}
+getDynLibDir  :: IO FilePath
 getDynLibDir  = {{ dynlibdir }}
+getDataDir    :: IO FilePath
 getDataDir    = catchIO (getEnv "{{ manglePkgName packageName }}_datadir")    (\_ -> {{ datadir }})
+getLibexecDir :: IO FilePath
 getLibexecDir = {{ libexecdir }}
+getSysconfDir :: IO FilePath
 getSysconfDir = {{ sysconfdir }}
 
 getPrefixDirRel :: FilePath -> IO FilePath

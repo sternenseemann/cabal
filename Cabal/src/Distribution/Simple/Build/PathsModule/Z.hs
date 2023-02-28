@@ -116,8 +116,6 @@ render z_root = execWriter $ do
   tell "  dir <- getDataDir\n"
   tell "  return (dir `joinFileName` name)\n"
   tell "\n"
-  tell "getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: IO FilePath\n"
-  tell "\n"
   let
     z_var0_function_defs = do
       tell "minusFileName :: FilePath -> String -> FilePath\n"
@@ -153,31 +151,37 @@ render z_root = execWriter $ do
     tell (zBindir z_root)
     tell ") `joinFileName` dirRel)\n"
     tell "\n"
+    tell "getBinDir     :: IO FilePath\n"
     tell "getBinDir     = catchIO (getEnv \""
     tell (zManglePkgName z_root (zPackageName z_root))
     tell "_bindir\")     (\\_ -> getPrefixDirReloc $ "
     tell (zBindir z_root)
     tell ")\n"
+    tell "getLibDir     :: IO FilePath\n"
     tell "getLibDir     = catchIO (getEnv \""
     tell (zManglePkgName z_root (zPackageName z_root))
     tell "_libdir\")     (\\_ -> getPrefixDirReloc $ "
     tell (zLibdir z_root)
     tell ")\n"
+    tell "getDynLibDir  :: IO FilePath\n"
     tell "getDynLibDir  = catchIO (getEnv \""
     tell (zManglePkgName z_root (zPackageName z_root))
     tell "_dynlibdir\")  (\\_ -> getPrefixDirReloc $ "
     tell (zDynlibdir z_root)
     tell ")\n"
+    tell "getDataDir    :: IO FilePath\n"
     tell "getDataDir    = catchIO (getEnv \""
     tell (zManglePkgName z_root (zPackageName z_root))
     tell "_datadir\")    (\\_ -> getPrefixDirReloc $ "
     tell (zDatadir z_root)
     tell ")\n"
+    tell "getLibexecDir :: IO FilePath\n"
     tell "getLibexecDir = catchIO (getEnv \""
     tell (zManglePkgName z_root (zPackageName z_root))
     tell "_libexecdir\") (\\_ -> getPrefixDirReloc $ "
     tell (zLibexecdir z_root)
     tell ")\n"
+    tell "getSysconfDir :: IO FilePath\n"
     tell "getSysconfDir = catchIO (getEnv \""
     tell (zManglePkgName z_root (zPackageName z_root))
     tell "_sysconfdir\") (\\_ -> getPrefixDirReloc $ "
@@ -216,21 +220,27 @@ render z_root = execWriter $ do
       tell (zSysconfdir z_root)
       tell "\n"
       tell "\n"
+      tell "getBinDir     :: IO FilePath\n"
       tell "getBinDir     = catchIO (getEnv \""
       tell (zManglePkgName z_root (zPackageName z_root))
       tell "_bindir\")     (\\_ -> return bindir)\n"
+      tell "getLibDir     :: IO FilePath\n"
       tell "getLibDir     = catchIO (getEnv \""
       tell (zManglePkgName z_root (zPackageName z_root))
       tell "_libdir\")     (\\_ -> return libdir)\n"
+      tell "getDynLibDir  :: IO FilePath\n"
       tell "getDynLibDir  = catchIO (getEnv \""
       tell (zManglePkgName z_root (zPackageName z_root))
       tell "_dynlibdir\")  (\\_ -> return dynlibdir)\n"
+      tell "getDataDir    :: IO FilePath\n"
       tell "getDataDir    = catchIO (getEnv \""
       tell (zManglePkgName z_root (zPackageName z_root))
       tell "_datadir\")    (\\_ -> return datadir)\n"
+      tell "getLibexecDir :: IO FilePath\n"
       tell "getLibexecDir = catchIO (getEnv \""
       tell (zManglePkgName z_root (zPackageName z_root))
       tell "_libexecdir\") (\\_ -> return libexecdir)\n"
+      tell "getSysconfDir :: IO FilePath\n"
       tell "getSysconfDir = catchIO (getEnv \""
       tell (zManglePkgName z_root (zPackageName z_root))
       tell "_sysconfdir\") (\\_ -> return sysconfdir)\n"
@@ -245,23 +255,29 @@ render z_root = execWriter $ do
         tell (zPrefix z_root)
         tell "\n"
         tell "\n"
+        tell "getBinDir     :: IO FilePath\n"
         tell "getBinDir     = getPrefixDirRel $ "
         tell (zBindir z_root)
         tell "\n"
+        tell "getLibDir     :: IO FilePath\n"
         tell "getLibDir     = "
         tell (zLibdir z_root)
         tell "\n"
+        tell "getDynLibDir  :: IO FilePath\n"
         tell "getDynLibDir  = "
         tell (zDynlibdir z_root)
         tell "\n"
+        tell "getDataDir    :: IO FilePath\n"
         tell "getDataDir    = catchIO (getEnv \""
         tell (zManglePkgName z_root (zPackageName z_root))
         tell "_datadir\")    (\\_ -> "
         tell (zDatadir z_root)
         tell ")\n"
+        tell "getLibexecDir :: IO FilePath\n"
         tell "getLibexecDir = "
         tell (zLibexecdir z_root)
         tell "\n"
+        tell "getSysconfDir :: IO FilePath\n"
         tell "getSysconfDir = "
         tell (zSysconfdir z_root)
         tell "\n"
