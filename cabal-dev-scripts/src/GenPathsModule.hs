@@ -47,6 +47,9 @@ $(capture "decls" [d|
         , zShouldEmitDataDir    :: Bool
         , zShouldEmitSysconfDir :: Bool
 
+        , zShouldEmitWarning :: Bool
+        , zWarning           :: String
+
         , zOr                         :: Bool -> Bool -> Bool
         , zNot                        :: Bool -> Bool
         , zManglePkgName              :: PackageName -> String

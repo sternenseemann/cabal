@@ -24,6 +24,8 @@ data Z
          zShouldEmitLibexecDir :: Bool,
          zShouldEmitDataDir :: Bool,
          zShouldEmitSysconfDir :: Bool,
+         zShouldEmitWarning :: Bool,
+         zWarning :: String,
          zOr :: (Bool -> Bool -> Bool),
          zNot :: (Bool -> Bool),
          zManglePkgName :: (PackageName -> String)}
@@ -60,7 +62,18 @@ render z_root = execWriter $ do
   tell "{-# OPTIONS_GHC -w #-}\n"
   tell "module Paths_"
   tell (zManglePkgName z_root (zPackageName z_root))
-  tell " (\n"
+  tell "\n"
+  tell "  "
+  if (zShouldEmitWarning z_root)
+  then do
+    tell "{-# WARNING "
+    tell (zWarning z_root)
+    tell " #-}"
+    return ()
+  else do
+    return ()
+  tell "\n"
+  tell "  (\n"
   tell "    version,\n"
   tell "    getBinDir,\n"
   if (zOr z_root (zNot z_root (zAbsolute z_root)) (zShouldEmitLibDir z_root))
