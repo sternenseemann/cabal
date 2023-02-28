@@ -182,22 +182,27 @@ render z_root = execWriter $ do
     if (zAbsolute z_root)
     then do
       tell "\n"
-      tell "bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath\n"
+      tell "bindir     :: FilePath\n"
       tell "bindir     = "
       tell (zBindir z_root)
       tell "\n"
+      tell "libdir     :: FilePath\n"
       tell "libdir     = "
       tell (zLibdir z_root)
       tell "\n"
+      tell "dynlibdir  :: FilePath\n"
       tell "dynlibdir  = "
       tell (zDynlibdir z_root)
       tell "\n"
+      tell "datadir    :: FilePath\n"
       tell "datadir    = "
       tell (zDatadir z_root)
       tell "\n"
+      tell "libexecdir :: FilePath\n"
       tell "libexecdir = "
       tell (zLibexecdir z_root)
       tell "\n"
+      tell "sysconfdir :: FilePath\n"
       tell "sysconfdir = "
       tell (zSysconfdir z_root)
       tell "\n"

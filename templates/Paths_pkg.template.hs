@@ -107,12 +107,17 @@ getSysconfDir = catchIO (getEnv "{{ manglePkgName packageName }}_sysconfdir") (\
 
 {% elif absolute %}
 
-bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath
+bindir     :: FilePath
 bindir     = {{ bindir }}
+libdir     :: FilePath
 libdir     = {{ libdir }}
+dynlibdir  :: FilePath
 dynlibdir  = {{ dynlibdir }}
+datadir    :: FilePath
 datadir    = {{ datadir }}
+libexecdir :: FilePath
 libexecdir = {{ libexecdir }}
+sysconfdir :: FilePath
 sysconfdir = {{ sysconfdir }}
 
 getBinDir     = catchIO (getEnv "{{ manglePkgName packageName }}_bindir")     (\_ -> return bindir)
