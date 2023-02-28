@@ -41,6 +41,13 @@ $(capture "decls" [d|
         , zLibexecdir :: FilePath
         , zSysconfdir :: FilePath
 
+        , zShouldEmitLibDir     :: Bool
+        , zShouldEmitDynLibDir  :: Bool
+        , zShouldEmitLibexecDir :: Bool
+        , zShouldEmitDataDir    :: Bool
+        , zShouldEmitSysconfDir :: Bool
+
+        , zOr                         :: Bool -> Bool -> Bool
         , zNot                        :: Bool -> Bool
         , zManglePkgName              :: PackageName -> String
         }
