@@ -47,8 +47,13 @@ render z_root = execWriter $ do
   tell (zManglePkgName z_root (zPackageName z_root))
   tell " (\n"
   tell "    version,\n"
-  tell "    getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir,\n"
-  tell "    getDataFileName, getSysconfDir\n"
+  tell "    getBinDir,\n"
+  tell "    getLibDir,\n"
+  tell "    getDynLibDir,\n"
+  tell "    getLibexecDir,\n"
+  tell "    getDataFileName,\n"
+  tell "    getDataDir,\n"
+  tell "    getSysconfDir\n"
   tell "  ) where\n"
   tell "\n"
   if (zNot z_root (zAbsolute z_root))
