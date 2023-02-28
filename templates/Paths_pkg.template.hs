@@ -16,8 +16,13 @@
 {-# OPTIONS_GHC -w #-}
 module Paths_{{ manglePkgName packageName }} (
     version,
-    getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir,
-    getDataFileName, getSysconfDir
+    getBinDir,
+    getLibDir,
+    getDynLibDir,
+    getLibexecDir,
+    getDataFileName,
+    getDataDir,
+    getSysconfDir
   ) where
 
 {% if not absolute %}
