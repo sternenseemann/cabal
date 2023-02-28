@@ -71,8 +71,7 @@ generatePathsModule pkg_descr lbi clbi = Z.render Z.Z
   where
     pathEmittable p
       | flat_prefix `isPrefixOf` flat_bindir = True
-      | flat_prefix `isPrefixOf` p = False
-      | otherwise = True
+      | otherwise = not (flat_prefix `isPrefixOf` p)
 
     dirs =
       map
