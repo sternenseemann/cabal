@@ -69,10 +69,64 @@ generatePathsModule pkg_descr lbi clbi = Z.render Z.Z
     , Z.zShouldEmitWarning = zShouldEmitWarning
     }
   where
+    -- GHC's NCG backend for aarch64-darwin does not support link-time dead code
+    -- elimination to the extent that NCG does for other targets. Consequently,
+    -- we struggle with unnecessarily retained store path references due to the
+    -- use of `Paths_*` modules – even if `getLibDir` is not used, it'll end up
+    -- in the final library or executables we build.
+    --
+    -- When using a different output for the executables and library, this
+    -- becomes more sinister: The library will contain a reference to the bin
+    -- output and itself due to `getLibDir` and `getBinDir`, but the executables
+    -- will do so, too. Either due to linking dynamically or because the library
+    -- is linked statically into the executable and retains those references.
+    -- Since Nix disallows cyclical references between two outputs, it becomes
+    -- impossible to use the `Paths_*` module and a separate `bin` output for
+    -- aarch64-darwin.
+    --
+    -- The solution we have resorted to for now, is to trim the `Paths_*` module
+    -- dynamically depending on what references *could* be used without causing
+    -- a cyclical reference. That has the effect that any code that would not
+    -- cause a cyclical reference with dead code elimination will compile and
+    -- work for aarch64-darwin. If the code would use a `get*Dir` function that
+    -- has been omitted, this would indicate that the code would have caused a
+    -- cyclical reference anyways.
+    --
+    -- The logic for this makes some pretty big assumptions about installation
+    -- prefixes that probably only hold fully in nixpkgs with
+    -- `haskellPackages.mkDerivation`. Simple uses outside nixpkgs that have
+    -- everything below the same prefix should continue to work as expected,
+    -- though.
+    --
+    -- We assume the following:
+    --
+    -- - flat_prefix is `$out`.
+    -- - flat_libdir etc. are always below `$out`.
+    --
+    -- Since in the normal case due to static linking `$bin` and `$out` will
+    -- have the same references in libraries/executables, we need to either
+    -- prevent usage of `getBinDir` or `getLibDir` to break the cycle in case
+    -- `flat_bindir` is not below `$out`. We have decided to always allow usage
+    -- of `getBinDir`, so `getLibDir` gets dropped if a separate `bin` output is
+    -- used. This has the simple reason that `$out` which contains `flat_libdir`
+    -- tends to be quite big – we would like to have a `bin` output that doesn't
+    -- require keeping that around.
+    pathEmittable :: FilePath -> Bool
     pathEmittable p
+      -- If the executable installation target is below `$out` the reference
+      -- cycle is within a single output (since libs are installed to `$out`)
+      -- and thus unproblematic. We can use any and all `get*Dir` functions.
       | flat_prefix `isPrefixOf` flat_bindir = True
+      -- Otherwise, we need to disallow all `get*Dir` functions that would cause
+      -- a reference to `$out` which contains the libraries that would in turn
+      -- reference `$bin`. This always include `flat_libdir` and friends, but
+      -- can also include `flat_datadir` if no separate output for data files is
+      -- used.
       | otherwise = not (flat_prefix `isPrefixOf` p)
 
+    -- This list maps the "name" of the directory to whether we want to include
+    -- it in the `Paths_*` module or not. `shouldEmit` performs a lookup in this.
+    dirs :: [(String, Bool)]
     dirs =
       map
        (\(name, path) -> (name, pathEmittable path))
@@ -83,20 +137,30 @@ generatePathsModule pkg_descr lbi clbi = Z.render Z.Z
        , ("SysconfDir", flat_sysconfdir)
        ]
 
+    shouldEmit :: String -> Bool
     shouldEmit name =
       case lookup name dirs of
         Just b -> b
         Nothing -> error "panic! BUG in Cabal Paths_ patch for aarch64-darwin, report this at https://github.com/nixos/nixpkgs/issues"
 
+    -- This is a comma separated list of all functions that have been omitted.
+    -- This is included in a GHC warning which will be attached to the `Paths_*`
+    -- module in case we are dropping any `get*Dir` functions that would
+    -- normally exist.
+    --
+    -- TODO: getDataFileName is not accounted for at the moment.
+    omittedFunctions :: String
     omittedFunctions =
       intercalate ", "
       $ map (("get" ++) . fst)
       $ filter (not . snd) dirs
 
+    zWarning :: String
     zWarning =
       show $
         "The following functions have been omitted by a nixpkgs-specific patch to Cabal: "
         ++ omittedFunctions
+    zShouldEmitWarning :: Bool
     zShouldEmitWarning = any (not . snd) dirs
 
     supports_cpp                 = supports_language_pragma
