@@ -113,27 +113,31 @@ getSysconfDir = catchIO (getEnv "{{ manglePkgName packageName }}_sysconfdir") (\
 
 bindir     :: FilePath
 bindir     = {{ bindir }}
-libdir     :: FilePath
-libdir     = {{ libdir }}
-dynlibdir  :: FilePath
-dynlibdir  = {{ dynlibdir }}
-datadir    :: FilePath
-datadir    = {{ datadir }}
-libexecdir :: FilePath
-libexecdir = {{ libexecdir }}
-sysconfdir :: FilePath
-sysconfdir = {{ sysconfdir }}
-
 getBinDir     :: IO FilePath
 getBinDir     = catchIO (getEnv "{{ manglePkgName packageName }}_bindir")     (\_ -> return bindir)
+
+libdir     :: FilePath
+libdir     = {{ libdir }}
 getLibDir     :: IO FilePath
 getLibDir     = catchIO (getEnv "{{ manglePkgName packageName }}_libdir")     (\_ -> return libdir)
+
+dynlibdir  :: FilePath
+dynlibdir  = {{ dynlibdir }}
 getDynLibDir  :: IO FilePath
 getDynLibDir  = catchIO (getEnv "{{ manglePkgName packageName }}_dynlibdir")  (\_ -> return dynlibdir)
+
+datadir    :: FilePath
+datadir    = {{ datadir }}
 getDataDir    :: IO FilePath
 getDataDir    = catchIO (getEnv "{{ manglePkgName packageName }}_datadir")    (\_ -> return datadir)
+
+libexecdir :: FilePath
+libexecdir = {{ libexecdir }}
 getLibexecDir :: IO FilePath
 getLibexecDir = catchIO (getEnv "{{ manglePkgName packageName }}_libexecdir") (\_ -> return libexecdir)
+
+sysconfdir :: FilePath
+sysconfdir = {{ sysconfdir }}
 getSysconfDir :: IO FilePath
 getSysconfDir = catchIO (getEnv "{{ manglePkgName packageName }}_sysconfdir") (\_ -> return sysconfdir)
 
