@@ -64,6 +64,9 @@ generatePathsModule pkg_descr lbi clbi = Z.render Z.Z
     , Z.zShouldEmitDynLibDir  = shouldEmit "DynLibDir"
     , Z.zShouldEmitLibexecDir = shouldEmit "LibexecDir"
     , Z.zShouldEmitSysconfDir = shouldEmit "SysconfDir"
+
+    , Z.zWarning           = zWarning
+    , Z.zShouldEmitWarning = zShouldEmitWarning
     }
   where
     pathEmittable p
@@ -85,6 +88,17 @@ generatePathsModule pkg_descr lbi clbi = Z.render Z.Z
       case lookup name dirs of
         Just b -> b
         Nothing -> error "panic! BUG in Cabal Paths_ patch for aarch64-darwin, report this at https://github.com/nixos/nixpkgs/issues"
+
+    omittedFunctions =
+      intercalate ", "
+      $ map (("get" ++) . fst)
+      $ filter (not . snd) dirs
+
+    zWarning =
+      show $
+        "The following functions have been omitted by a nixpkgs-specific patch to Cabal: "
+        ++ omittedFunctions
+    zShouldEmitWarning = any (not . snd) dirs
 
     supports_cpp                 = supports_language_pragma
     supports_rebindable_syntax   = ghc_newer_than (mkVersion [7,0,1])

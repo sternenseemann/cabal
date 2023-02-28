@@ -9,7 +9,9 @@
 {% endif %}
 {-# OPTIONS_GHC -fno-warn-missing-import-lists #-}
 {-# OPTIONS_GHC -w #-}
-module Paths_{{ manglePkgName packageName }} (
+module Paths_{{ manglePkgName packageName }}
+  {% if shouldEmitWarning %}{-# WARNING {{ warning }} #-}{% endif %}
+  (
     version,
     getBinDir,
 {# We only care about the absolute case for our emit logic, since only in this
