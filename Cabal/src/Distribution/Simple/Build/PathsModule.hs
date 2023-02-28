@@ -46,6 +46,7 @@ generatePathsModule pkg_descr lbi clbi = Z.render Z.Z
     , Z.zIsWindows                  = isWindows
     , Z.zIsI386                     = buildArch == I386
     , Z.zIsX8664                    = buildArch == X86_64
+    , Z.zOr                         = (||)
     , Z.zNot                        = not
     , Z.zManglePkgName              = showPkgName
 
@@ -56,8 +57,35 @@ generatePathsModule pkg_descr lbi clbi = Z.render Z.Z
     , Z.zDatadir    = zDatadir
     , Z.zLibexecdir = zLibexecdir
     , Z.zSysconfdir = zSysconfdir
+
+    -- Sadly we can't be cleverer about this – we can't have literals in the template
+    , Z.zShouldEmitDataDir    = shouldEmit "DataDir"
+    , Z.zShouldEmitLibDir     = shouldEmit "LibDir"
+    , Z.zShouldEmitDynLibDir  = shouldEmit "DynLibDir"
+    , Z.zShouldEmitLibexecDir = shouldEmit "LibexecDir"
+    , Z.zShouldEmitSysconfDir = shouldEmit "SysconfDir"
     }
   where
+    pathEmittable p
+      | flat_prefix `isPrefixOf` flat_bindir = True
+      | flat_prefix `isPrefixOf` p = False
+      | otherwise = True
+
+    dirs =
+      map
+       (\(name, path) -> (name, pathEmittable path))
+       [ ("LibDir", flat_libdir)
+       , ("DynLibDir", flat_dynlibdir)
+       , ("DataDir", flat_datadir)
+       , ("LibexecDir", flat_libexecdir)
+       , ("SysconfDir", flat_sysconfdir)
+       ]
+
+    shouldEmit name =
+      case lookup name dirs of
+        Just b -> b
+        Nothing -> error "panic! BUG in Cabal Paths_ patch for aarch64-darwin, report this at https://github.com/nixos/nixpkgs/issues"
+
     supports_cpp                 = supports_language_pragma
     supports_rebindable_syntax   = ghc_newer_than (mkVersion [7,0,1])
     supports_language_pragma     = ghc_newer_than (mkVersion [6,6,1])

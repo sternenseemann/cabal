@@ -12,12 +12,26 @@
 module Paths_{{ manglePkgName packageName }} (
     version,
     getBinDir,
+{# We only care about the absolute case for our emit logic, since only in this
+   case references are incurred. We are not going to hit isWindows and relocatable
+   has no absolute references to begin with.
+#}
+{% if or (not absolute) shouldEmitLibDir %}
     getLibDir,
+{% endif %}
+{% if or (not absolute) shouldEmitDynLibDir %}
     getDynLibDir,
+{% endif %}
+{% if or (not absolute) shouldEmitLibexecDir %}
     getLibexecDir,
+{% endif %}
+{% if or (not absolute) shouldEmitDataDir %}
     getDataFileName,
     getDataDir,
+{% endif %}
+{% if or (not absolute) shouldEmitSysconfDir %}
     getSysconfDir
+{% endif %}
   ) where
 
 {% if not absolute %}
@@ -56,10 +70,12 @@ catchIO = Exception.catch
 version :: Version
 version = Version {{ versionDigits }} []
 
+{% if or (not absolute) shouldEmitDataDir %}
 getDataFileName :: FilePath -> IO FilePath
 getDataFileName name = do
   dir <- getDataDir
   return (dir `joinFileName` name)
+{% endif %}
 
 {% defblock function_defs %}
 minusFileName :: FilePath -> String -> FilePath
@@ -87,6 +103,10 @@ splitFileName p = (reverse (path2++drive), reverse fname)
 {# ######################################################################### #}
 
 {% if relocatable %}
+
+{# Relocatable can not incur any absolute references, so we can ignore it.
+   Additionally, --enable-relocatable is virtually useless in Nix builds
+#}
 
 getPrefixDirReloc :: FilePath -> IO FilePath
 getPrefixDirReloc dirRel = do
@@ -116,32 +136,46 @@ bindir     = {{ bindir }}
 getBinDir     :: IO FilePath
 getBinDir     = catchIO (getEnv "{{ manglePkgName packageName }}_bindir")     (\_ -> return bindir)
 
+{% if shouldEmitLibDir %}
 libdir     :: FilePath
 libdir     = {{ libdir }}
 getLibDir     :: IO FilePath
 getLibDir     = catchIO (getEnv "{{ manglePkgName packageName }}_libdir")     (\_ -> return libdir)
+{% endif %}
 
+{% if shouldEmitDynLibDir %}
 dynlibdir  :: FilePath
 dynlibdir  = {{ dynlibdir }}
 getDynLibDir  :: IO FilePath
 getDynLibDir  = catchIO (getEnv "{{ manglePkgName packageName }}_dynlibdir")  (\_ -> return dynlibdir)
+{% endif %}
 
+{% if shouldEmitDataDir %}
 datadir    :: FilePath
 datadir    = {{ datadir }}
 getDataDir    :: IO FilePath
 getDataDir    = catchIO (getEnv "{{ manglePkgName packageName }}_datadir")    (\_ -> return datadir)
+{% endif %}
 
+{% if shouldEmitLibexecDir %}
 libexecdir :: FilePath
 libexecdir = {{ libexecdir }}
 getLibexecDir :: IO FilePath
 getLibexecDir = catchIO (getEnv "{{ manglePkgName packageName }}_libexecdir") (\_ -> return libexecdir)
+{% endif %}
 
+{% if shouldEmitSysconfDir %}
 sysconfdir :: FilePath
 sysconfdir = {{ sysconfdir }}
 getSysconfDir :: IO FilePath
 getSysconfDir = catchIO (getEnv "{{ manglePkgName packageName }}_sysconfdir") (\_ -> return sysconfdir)
+{% endif %}
 
 {% elif isWindows %}
+
+{# We are only trying to fix the problem for aarch64-darwin with this patch,
+   so let's ignore Windows which we can reach via pkgsCross, for example.
+#}
 
 prefix :: FilePath
 prefix = {{ prefix }}
